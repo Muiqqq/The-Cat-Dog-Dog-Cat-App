@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">CatDogApp</string>
+    <string name="app_header">The Cat/Dog App</string>
+</resources>
