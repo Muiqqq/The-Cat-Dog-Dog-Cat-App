@@ -20,10 +20,10 @@
         tools:srcCompat="@tools:sample/backgrounds/scenic" />
 
     <TextView
-        android:id="@+id/textView"
+        android:id="@+id/appHeader"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="@string/app_header"
+        android:text="temp"
         app:layout_constraintBottom_toTopOf="@+id/imageView"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.498"
@@ -32,14 +32,15 @@
         app:layout_constraintVertical_bias="0.459" />
 
     <Button
-        android:id="@+id/button4"
+        android:id="@+id/swapButton"
         android:layout_width="94dp"
         android:layout_height="42dp"
         android:layout_marginTop="16dp"
         android:text="Swap"
+        android:onClick="swapClicked"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.534"
-        app:layout_constraintStart_toEndOf="@+id/textView"
+        app:layout_constraintStart_toEndOf="@+id/appHeader"
         app:layout_constraintTop_toTopOf="parent" />
 
     <Button
