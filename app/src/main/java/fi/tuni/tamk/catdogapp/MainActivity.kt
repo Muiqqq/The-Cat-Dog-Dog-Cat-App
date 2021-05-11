@@ -8,25 +8,15 @@ import android.widget.Button
 import android.widget.TextView
 import kotlin.reflect.typeOf
 
-interface AppConfig {
-    val type: String
-    val theme: Int
-    val appHeader: String
-}
-
-data class DogConfig(
-    override val type: String = "DogConfig",
-    override val theme: Int = R.style.Theme_DogCatApp,
-    override val appHeader: String = "The Dog/Cat App",
-) : AppConfig
-
-data class CatConfig(
-    override val type: String = "CatConfig",
-    override val theme: Int = R.style.Theme_CatDogApp,
-    override val appHeader: String = "The Cat/Dog App",
-) : AppConfig
+data class AppConfig (
+    val type: String,
+    val theme: Int,
+    val appHeader: String,
+    )
 
 class MainActivity : AppCompatActivity() {
+    private val catConfig = AppConfig("Cat", R.style.Theme_CatDogApp, "The Cat/Dog App")
+    private val dogConfig = AppConfig("Dog", R.style.Theme_DogCatApp, "The Dog/Cat App")
     lateinit var appHeader : TextView
     lateinit var config : AppConfig
 
@@ -37,12 +27,12 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        val configType = savedInstanceState?.getString("config") ?: "CatConfig"
+        val configType = savedInstanceState?.getString("config") ?: "Cat"
         config = when(configType) {
-            "DogConfig" -> DogConfig()
-            "CatConfig" -> CatConfig()
+            "Dog" -> dogConfig
+            "Cat" -> catConfig
             else -> {
-                CatConfig()
+                catConfig
             }
         }
         appHeader = findViewById(R.id.appHeader)
@@ -55,11 +45,14 @@ class MainActivity : AppCompatActivity() {
         outState.putString("config", config.type)
     }
 
-    fun swapClicked(v: View) {
+    fun onSwapButtonClicked(v: View) {
         Log.d("tag", "swap clicked")
-        when(config) {
-            is CatConfig -> config = DogConfig()
-            is DogConfig -> config = CatConfig()
+        config = when(config.type) {
+            "Cat" -> dogConfig
+            "Dog" -> catConfig
+            else -> {
+                catConfig
+            }
         }
         this.recreate()
     }
