@@ -1,13 +1,17 @@
 package fi.tuni.tamk.catdogapp
 
+import android.annotation.SuppressLint
 import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
 import android.view.View
+import android.view.animation.Animation
+import android.view.animation.AnimationUtils
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.constraintlayout.widget.ConstraintLayout
+import androidx.core.view.isVisible
 import com.google.android.material.snackbar.Snackbar
 import com.squareup.picasso.MemoryPolicy
 import com.squareup.picasso.Picasso
@@ -50,6 +54,10 @@ class MainActivity : AppCompatActivity() {
     lateinit var config : AppConfig
     lateinit var currentImage : ImageData
 
+    lateinit var translateLeftAnim : Animation
+    lateinit var translateRightAnim : Animation
+
+    @SuppressLint("ClickableViewAccessibility")
     override fun onCreate(savedInstanceState: Bundle?) {
         if (savedInstanceState?.getInt("theme") != 0 && savedInstanceState != null) {
             setTheme(savedInstanceState.getInt("theme"))
@@ -70,14 +78,51 @@ class MainActivity : AppCompatActivity() {
         appHeader = findViewById(R.id.appHeader)
         appHeader.text = config.appHeader
 
+        translateLeftAnim = AnimationUtils.loadAnimation(this, R.anim.translate_img_left)
+        translateRightAnim = AnimationUtils.loadAnimation(this, R.anim.translate_img_right)
+
         val imageView: ImageView = findViewById(R.id.imageView)
         switchImage(config, imageView)
+
+        imageView.setOnTouchListener(object : OnSwipeTouchListener(this@MainActivity) {
+            override fun onSwipeLeft() {
+                super.onSwipeLeft()
+                animateAndExecuteCallbackOnAnimationEnd(imageView, translateLeftAnim) {
+                    imageView.visibility = View.INVISIBLE
+                    switchImage(config, findViewById(R.id.imageView))
+                }
+                Log.d("Swipe", "Swiped left")
+            }
+
+            override fun onSwipeRight() {
+                super.onSwipeRight()
+                animateAndExecuteCallbackOnAnimationEnd(imageView, translateRightAnim) {
+                    imageView.visibility = View.INVISIBLE
+                    switchImage(config, findViewById(R.id.imageView))
+                }
+                Log.d("Swipe", "Swiped right")
+            }
+
+        })
+
+
     }
+
 
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
         outState.putInt("theme", config.theme)
         outState.putString("config", config.type)
+    }
+
+    fun animateAndExecuteCallbackOnAnimationEnd(v: View, a: Animation, cb: () -> Unit) {
+        a.setAnimationListener(object : AnimationAdapter() {
+            override fun onAnimationEnd(animation: Animation?) {
+                super.onAnimationEnd(animation)
+                cb()
+            }
+        })
+        v.startAnimation(a)
     }
 
     fun onSwapButtonClicked(v: View) {
@@ -89,10 +134,6 @@ class MainActivity : AppCompatActivity() {
             }
         }
         this.recreate()
-    }
-
-    fun onNewImageClicked(v: View) {
-        switchImage(config, findViewById(R.id.imageView))
     }
 
     fun onFavoriteClicked(v: View) {
@@ -136,6 +177,7 @@ class MainActivity : AppCompatActivity() {
                     .fit()
                     .centerCrop()
                     .into(view)
+                view.visibility = View.VISIBLE
             }
         }
     }
