@@ -1,55 +1,59 @@
 package fi.tuni.tamk.catdogapp
 
+import android.annotation.SuppressLint
 import android.content.Intent
+import android.content.SharedPreferences
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.util.Log
 import android.view.View
+import android.view.animation.Animation
+import android.view.animation.AnimationUtils
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.constraintlayout.widget.ConstraintLayout
 import com.google.android.material.snackbar.Snackbar
 import com.squareup.picasso.MemoryPolicy
 import com.squareup.picasso.Picasso
+import fi.tuni.tamk.catdogapp.data.ImageData
+import fi.tuni.tamk.catdogapp.utils.addFavorite
+import fi.tuni.tamk.catdogapp.utils.animateAndExecuteCallbackOnAnimationEnd
+import fi.tuni.tamk.catdogapp.utils.fetchOne
+import fi.tuni.tamk.catdogapp.utils.parseImageData
+import java.util.*
 
-// TODO: Change button labels etc. to match current config where applicable
-//       Add a third config for no preference between cats/dogs. (Shows both animals)
-//       Add ability to delete favorites
-//       Add ability to undo add favorite (from snackbar)
-//       Add an overlaying imageView when any image clicked (able to (un)favorite / get new img in it)
-//       Refactor to use fragments instead of separate activities?
-//       Make the UI cooler
-data class AppConfig (
-    val type: String,
-    val theme: Int,
-    val appHeader: String,
-    val apiUrl: String,
-    val apikey: String,
-)
-
+/**
+ * The main activity for CatDogApp. Shows a random image of either a cat or a dog, depending
+ * which mode the app is in. Modes are: PREFLESS, CAT, DOG. Check AppConfig doc for more detail.
+ * The mode can be switched with a button, which then shows a dialog in which the user can choose
+ * between the modes. User can add the currently viewed image as a favorite, and there is a button
+ * to change the activity to another where the user can see their favorites. New image can be
+ * loaded by swiping the current image either left or right.
+ */
 class MainActivity : AppCompatActivity() {
-    private val catConfig = AppConfig(
-        "Cat",
-        R.style.Theme_CatDogApp,
-        "The Cat App",
-        "https://api.thecatapi.com/v1/",
-        BuildConfig.CATAPI_KEY
+
+    /**
+     * Helper class, holds information about the image that's currently on screen.
+     */
+    data class CurrentImg(
+        var image : ImageData? = null,
+        var apiUrl : String? = null,
     )
 
-    private val dogConfig = AppConfig(
-        "Dog",
-        R.style.Theme_DogCatApp,
-        "The Dog App",
-        "https://api.thedogapi.com/v1/",
-        BuildConfig.DOGAPI_KEY
-    )
+    lateinit var prefs : SharedPreferences
 
     lateinit var parent : ConstraintLayout
 
     lateinit var appHeader : TextView
-    lateinit var config : AppConfig
-    lateinit var currentImage : ImageData
+    var currentImage : CurrentImg = CurrentImg()
 
+    lateinit var translateLeftAnim : Animation
+    lateinit var translateRightAnim : Animation
+
+    lateinit var swapModeDialog : SwapModeDialog
+
+    val config = AppConfig()
+
+    @SuppressLint("ClickableViewAccessibility")
     override fun onCreate(savedInstanceState: Bundle?) {
         if (savedInstanceState?.getInt("theme") != 0 && savedInstanceState != null) {
             setTheme(savedInstanceState.getInt("theme"))
@@ -57,21 +61,56 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
+        prefs = getSharedPreferences("fi.tuni.tamk.catdogapp", MODE_PRIVATE)
+
         parent = findViewById(R.id.parent)
 
-        val configType = savedInstanceState?.getString("config") ?: "Cat"
-        config = when(configType) {
-            "Dog" -> dogConfig
-            "Cat" -> catConfig
+        when(savedInstanceState?.getString("config")) {
+            "Dog" -> config.changeAppState(AppConfig.DOG)
+            "Cat" -> config.changeAppState(AppConfig.CAT)
             else -> {
-                catConfig
+                config.changeAppState(AppConfig.PREFLESS)
             }
         }
+
         appHeader = findViewById(R.id.appHeader)
         appHeader.text = config.appHeader
 
+        translateLeftAnim = AnimationUtils.loadAnimation(this, R.anim.translate_img_left)
+        translateRightAnim = AnimationUtils.loadAnimation(this, R.anim.translate_img_right)
+
         val imageView: ImageView = findViewById(R.id.imageView)
         switchImage(config, imageView)
+
+        imageView.setOnTouchListener(object : OnSwipeTouchListener(this@MainActivity) {
+            override fun onSwipeLeft() {
+                super.onSwipeLeft()
+                animateAndExecuteCallbackOnAnimationEnd(imageView, translateLeftAnim) {
+                    imageView.visibility = View.INVISIBLE
+                    switchImage(config, findViewById(R.id.imageView))
+                }
+                // Log.d("Swipe", "Swiped left")
+            }
+
+            override fun onSwipeRight() {
+                super.onSwipeRight()
+                animateAndExecuteCallbackOnAnimationEnd(imageView, translateRightAnim) {
+                    imageView.visibility = View.INVISIBLE
+                    switchImage(config, findViewById(R.id.imageView))
+                }
+                // Log.d("Swipe", "Swiped right")
+            }
+        })
+
+        swapModeDialog = SwapModeDialog(this)
+
+        if (prefs.getBoolean("first_run", true)) {
+            swapModeDialog.show()
+
+            val uuid = UUID.randomUUID().toString()
+            prefs.edit().putString("uuid", uuid).apply()
+            prefs.edit().putBoolean("first_run", false).apply()
+        }
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
@@ -80,55 +119,54 @@ class MainActivity : AppCompatActivity() {
         outState.putString("config", config.type)
     }
 
+    /**
+     * The swap button opens the swapModeDialog.
+     * @see fi.tuni.tamk.catdogapp.SwapModeDialog
+     */
     fun onSwapButtonClicked(v: View) {
-        config = when(config.type) {
-            "Cat" -> dogConfig
-            "Dog" -> catConfig
-            else -> {
-                catConfig
-            }
-        }
-        this.recreate()
+        swapModeDialog.show()
     }
 
-    fun onNewImageClicked(v: View) {
-        switchImage(config, findViewById(R.id.imageView))
-    }
-
+    /**
+     * Add to favorites button adds the image to favorites
+     */
     fun onFavoriteClicked(v: View) {
-        config.apiUrl.addFavorite(config.apikey, currentImage.id!!, "test") {
+        val url = currentImage.apiUrl
+        // Log.d("TAG", config.apiUrl)
+        url?.addFavorite(config.apikey, currentImage.image?.id!!, prefs.getString("uuid", "test")!!) {
             val snackBarText = when(it) {
                 "200" -> "Added to favorites successfully"
                 else -> {
                     "ERROR: Could not add to favorites."
                 }
             }
-            Snackbar.make(parent, snackBarText, Snackbar.LENGTH_SHORT)
-                .setAction("Undo") {
-                    // TODO: Add UNDO FUNCTIONALITY!!!
-                    Log.d("UNDO", "Trying to undo favorite.")
-                }
-                .show()
+            Snackbar.make(parent, snackBarText, Snackbar.LENGTH_SHORT).show()
         }
     }
 
+    /**
+     * Show Favorites button opens the favorites activity, where user can view their favorites.
+     */
     fun onShowFavoritesClicked(v: View) {
         val intent = Intent(this, FavoritesActivity::class.java).apply {
-            putExtra("type", config.type)
-            putExtra("theme", config.theme)
-            putExtra("appHeader", config.appHeader)
-            putExtra("apiUrl", config.apiUrl)
-            putExtra("apikey", config.apikey)
+            putExtra("appState", config.appState)
+            // Log.d("AppState", "${config.appState}")
         }
         startActivity(intent)
     }
 
+    /**
+     * Function to switch the image showing on the screen. Fetches a new one and loads it in using
+     * Picasso.
+     */
     private fun switchImage(config: AppConfig, view: ImageView) {
-        config.apiUrl.fetchOne(config.apikey) {
+        val url = config.apiUrl
+        url.fetchOne(config.apikey) {
             // Log.d("Result", it)
             val result = parseImageData(it)
             runOnUiThread() {
-                currentImage = result[0]
+                currentImage.image = result[0]
+                currentImage.apiUrl = url
                 Picasso
                     .get()
                     .load(result[0].url)
@@ -136,6 +174,7 @@ class MainActivity : AppCompatActivity() {
                     .fit()
                     .centerCrop()
                     .into(view)
+                view.visibility = View.VISIBLE
             }
         }
     }
