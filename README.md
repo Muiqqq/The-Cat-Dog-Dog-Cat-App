@@ -6,6 +6,21 @@ Small mobile app for a school course.
 
 Aleksi Muikku
 
+## Known bugs
+
+- Shown images are sometimes cropped poorly. This is due to the APIs providing wildly differently sized images, and a compromise had to be made.
+- The view showing a single favorite image has it's area extend a bit beyond the textview on top and the button at bottom, making dismissing the view by clicking the background awkward if user clicks near those elements. This is more apparent on smaller screens.
+
+## Release 2: 2021-05-21 features
+
+- A third mode was added: Prefless, shows images of cats or dogs at random. Favorite view in this mode shows both favorite dog and cat images.
+- User is able to change between all 3 modes with a dialog that opens when the swap button is pressed.
+- User is able to swipe to get new random image in the main view.
+- User is able to view favorite images in a larger form, by clicking any image in the Favorites view.
+- When viewing images in the larger form, user is able to swipe to move between favorite images.
+- User is able to delete images from favorites
+- Favorites are now unique on each installation of the app. Before, íf the app was used on multiple devices, it would show the same images.
+
 ## Release 1: 2021-05-12 features
 
 - User is able to swap between Cat/Dog mode
