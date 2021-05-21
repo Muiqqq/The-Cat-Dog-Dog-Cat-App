@@ -107,6 +107,8 @@ class MainActivity : AppCompatActivity() {
 
         swapModeDialog = SwapModeDialog(this)
 
+        // Show the swapModeDialog right at app launch if launching for the first time
+        // Add a UUID to prefs, used as sub_id in some of the network requests.
         if (prefs.getBoolean("first_run", true)) {
             swapModeDialog.show()
 
