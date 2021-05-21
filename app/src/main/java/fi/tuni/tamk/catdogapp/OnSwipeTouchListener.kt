@@ -36,6 +36,7 @@ open class OnSwipeTouchListener(context: Context) : View.OnTouchListener {
 
         override fun onFling(e1: MotionEvent, e2: MotionEvent, velocityX: Float, velocityY: Float): Boolean {
             var result = false
+            // Figure out which way the swipe happened and call the corresponding function
             try {
                 val diffY = e2.y - e1.y
                 val diffX = e2.x - e1.x
