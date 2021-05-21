@@ -82,23 +82,26 @@ class MainActivity : AppCompatActivity() {
         val imageView: ImageView = findViewById(R.id.imageView)
         switchImage(config, imageView)
 
+        // Make the image swipeable, play an animation and then switch the image.
+        // imageView is temporarily set invisible, so that the previous image doesn't momentarily
+        // show up after the animation ends.
         imageView.setOnTouchListener(object : OnSwipeTouchListener(this@MainActivity) {
             override fun onSwipeLeft() {
                 super.onSwipeLeft()
-                animateAndExecuteCallbackOnAnimationEnd(imageView, translateLeftAnim) {
-                    imageView.visibility = View.INVISIBLE
-                    switchImage(config, findViewById(R.id.imageView))
-                }
-                // Log.d("Swipe", "Swiped left")
+                onSwipe(imageView, translateLeftAnim)
             }
 
             override fun onSwipeRight() {
                 super.onSwipeRight()
-                animateAndExecuteCallbackOnAnimationEnd(imageView, translateRightAnim) {
-                    imageView.visibility = View.INVISIBLE
-                    switchImage(config, findViewById(R.id.imageView))
+                onSwipe(imageView, translateRightAnim)
+            }
+
+            // Helper func so same code doesn't need to be repeated
+            fun onSwipe(imgView: ImageView, anim: Animation) {
+                animateAndExecuteCallbackOnAnimationEnd(imgView, anim) {
+                    imgView.visibility = View.INVISIBLE
+                    switchImage(config, imgView)
                 }
-                // Log.d("Swipe", "Swiped right")
             }
         })
 
