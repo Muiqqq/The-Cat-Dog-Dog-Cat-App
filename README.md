@@ -6,6 +6,9 @@ Small mobile app for a school course.
 
 Aleksi Muikku
 
+## Screencast
+[![Project Screencast](https://img.youtube.com/vi/We936RqpJ9c/0.jpg)](https://www.youtube.com/watch?v=We936RqpJ9c "Native Mobile Development - Projektin Screencast")
+
 ## Known bugs
 
 - Shown images are sometimes cropped poorly. This is due to the APIs providing wildly differently sized images, and a compromise had to be made.
