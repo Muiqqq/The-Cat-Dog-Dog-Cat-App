@@ -5,7 +5,7 @@
     android:id="@+id/parent"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:padding="10dp"
+    android:padding="15dp"
     tools:context=".MainActivity">
 
     <ImageView
@@ -15,9 +15,8 @@
         android:layout_marginTop="8dp"
         android:background="#FFFFFF"
         android:contentDescription="A picture of a Cat or a Dog. It's really cute."
-        app:layout_constraintDimensionRatio="H,9:8"
+        app:layout_constraintDimensionRatio="H,8:7"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.761"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/tipText"
         tools:srcCompat="@tools:sample/backgrounds/scenic" />
@@ -25,9 +24,9 @@
     <Button
         android:id="@+id/addFavoriteButton"
         android:layout_width="0dp"
-        android:layout_height="wrap_content"
+        android:layout_height="60dp"
         android:onClick="onFavoriteClicked"
-        android:text="Favorite"
+        android:text="Add to Favorites"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="1.0"
         app:layout_constraintStart_toStartOf="parent"
@@ -36,21 +35,12 @@
     <Button
         android:id="@+id/showFavoritesButton"
         android:layout_width="0dp"
-        android:layout_height="wrap_content"
+        android:layout_height="60dp"
+        android:layout_marginTop="16dp"
         android:onClick="onShowFavoritesClicked"
         android:text="Show favorites"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/browseButton" />
-
-    <Button
-        android:id="@+id/browseButton"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="24dp"
-        android:text="Browse"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.8"
+        app:layout_constraintHorizontal_bias="1.0"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/addFavoriteButton" />
 
@@ -61,7 +51,6 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
-
         <TextView
             android:id="@+id/appHeader"
             android:layout_width="wrap_content"

@@ -7,6 +7,11 @@ import android.view.MotionEvent
 import android.view.View
 import kotlin.math.abs
 
+/**
+ * Listener to handle swipe gesture. Works for left and right swiping.
+ *
+ * @param context The context this listener is a part of, f. ex: an activity.
+ */
 open class OnSwipeTouchListener(context: Context) : View.OnTouchListener {
     private val gestureDetector: GestureDetector
 
